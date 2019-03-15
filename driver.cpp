@@ -51,7 +51,6 @@ WINDOW* createWindow(int wrows, int wcolumns) {
     WINDOW* window = newwin(wrows, wcolumns, (winrows - wrows) / 2, 
         (wincolumns - wcolumns) / 2); // create the window
     box(window, 0, 0); // create the box and border    
-    wborder(window, '|', '|', '-', '-', '+', '+', '+', '+');
     wrefresh(window); // refresh the window
     return window; // return it
 }

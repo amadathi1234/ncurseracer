@@ -98,8 +98,7 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
 }
 
 double gameHandler(WINDOW* window, std::string &chars) { 
-    // not using pass by reference causes the while loop to exit after 1 pass. Why?
-    // my guess: the value copy data is overwritten by creating another string (???)
+    // INITIALIZE YOUR VARIABLES PLEASE
     double wpmCount = 0.0;
     const int CLOCK_SPEED = 5;
     int currentIndex = 0, incorrectBegin = 0, msSinceStart = 0, begin = 0;
@@ -107,14 +106,15 @@ double gameHandler(WINDOW* window, std::string &chars) {
     while(currentIndex < (int)chars.size()) {
         wcolorprintcenter(window, chars, currentIndex, incorrectBegin);
         int nextchar = wgetch(window);
-        if(begin == 0 && nextchar != (int)chars[0]) continue;
+        if(begin == 0 && nextchar == ERR) continue;
         else begin = 1;
-        if(nextchar == (int)chars[currentIndex]) incorrectBegin = ++currentIndex;
-        else if(nextchar == 127 && (currentIndex > 0 || incorrectBegin > 0)) {
-            if(incorrectBegin >= currentIndex) incorrectBegin--;
+        if(incorrectBegin <= currentIndex && 
+            nextchar == (int)chars[currentIndex]) incorrectBegin = ++currentIndex;
+        else if(nextchar == 127 && (currentIndex > 0 || incorrectBegin > 0)) { // ASCII 127= backspace
+            if(incorrectBegin > currentIndex) incorrectBegin--;
             else incorrectBegin = --currentIndex;
-        } else if(nextchar != 127 && nextchar != ERR) {
-            if(incorrectBegin <= currentIndex) incorrectBegin = currentIndex + 1;
+        } else if(nextchar != 127 && nextchar != ERR && incorrectBegin < (int)chars.size()) {
+            if(incorrectBegin < currentIndex) incorrectBegin = currentIndex + 1;
             else incorrectBegin++;
         }
         

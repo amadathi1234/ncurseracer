@@ -8,8 +8,8 @@
 #include <chrono>
 #include <iostream>
 
-void wprintcenter(WINDOW* window, const char* chars, int passedRow);
-void wprintcenter(WINDOW* window, const char* chars);
+void wprintcenter(WINDOW* window, std::string chars, int passedRow);
+void wprintcenter(WINDOW* window, std::string chars);
 WINDOW* createWindow(int wrows, int wcolumns);
 void delete_win(WINDOW* window);
 void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int incorrectIndex);
@@ -33,7 +33,10 @@ int main() {
         x = wgetch(window);
     delete_win(window);
     WINDOW* body = createWindow(30, 100);
-    std::string lel =  "The quick brown fox jumps over the lazy dog";
+    std::string lel = "aaaa";
+    for(int i = 0; i < 100; i++) {
+        lel += "aaaa";
+    }
     double wpm = gameHandler(body, lel);
     endwin();
     std::cout << "Your Words per Minute: " << wpm << std::endl;
@@ -55,14 +58,15 @@ WINDOW* createWindow(int wrows, int wcolumns) {
     return window; // return it
 }
 
-void wprintcenter(WINDOW* window, const char* chars, int passedRow) {
+void wprintcenter(WINDOW* window, std::string chars, int passedRow) {
     int rows, columns;
     getmaxyx(window, rows, columns); // get rows and columns
-    mvwprintw(window, passedRow, (columns - strlen(chars)) / 2, chars); // print at center
+    if((int)chars.size() >= columns) chars = chars.substr(0, columns);
+    mvwprintw(window, passedRow, (columns - (int)chars.size()) / 2, chars.c_str()); // print at center
     wrefresh(window);
 }
 
-void wprintcenter(WINDOW* window, const char* chars) {
+void wprintcenter(WINDOW* window, std::string chars) {
     int rows, columns;
     getmaxyx(window, rows, columns); // get rows and columns
     wprintcenter(window, chars, rows / 2);
@@ -73,26 +77,38 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
     int rows, columns;
     getmaxyx(window, rows, columns); // get rows and columns of printing
     start_color();
-    
-    // green section
-    init_pair(1, COLOR_WHITE, COLOR_GREEN);
-    wattron(window, COLOR_PAIR(1));
-    mvwprintw(window, rows / 2, (columns - (int)chars.size()) / 2, 
-        chars.substr(0, correctIndex).c_str()); 
-    // get the substring till the end of correct chars and convert to char*
-    wattroff(window, COLOR_PAIR(1));
-    init_pair(2, COLOR_WHITE, COLOR_RED);
-    wattron(window, COLOR_PAIR(2));
-    mvwprintw(window, rows / 2, (columns - (int)chars.size()) / 2 + correctIndex, 
-        chars.substr(correctIndex, incorrectIndex).c_str());
-    // get the substring till the end of incorrect chars and convert to char*
-    wattroff(window, COLOR_PAIR(2));
-    init_pair(3, COLOR_WHITE, COLOR_BLACK);
-    wattron(window, COLOR_PAIR(3)); 
-    mvwprintw(window, rows / 2, (columns - (int)chars.size()) / 2 + incorrectIndex, 
-        chars.substr(incorrectIndex, (int)chars.size()).c_str());
-    wattroff(window, COLOR_PAIR(3));
-    // get the substring till the end of the string and convert to char*
+    int i = 2;
+    while(chars.size() > columns) {
+        std::string cur;
+        if(chars.size() > columns - 2) {
+            cur = chars.substr(0, columns - 2); 
+            chars.erase(0, columns - 2);
+        }
+        // green section
+        init_pair(1, COLOR_WHITE, COLOR_GREEN);
+        wattron(window, COLOR_PAIR(1));
+        mvwprintw(window, i, (columns - (int)cur.size()) / 2, 
+            cur.substr(0, correctIndex).c_str()); 
+        // get the substring till the end of correct chars and convert to char*
+        wattroff(window, COLOR_PAIR(1));
+        init_pair(2, COLOR_WHITE, COLOR_RED);
+        wattron(window, COLOR_PAIR(2));
+        mvwprintw(window, i, (columns - (int)cur.size()) / 2 + correctIndex, 
+            cur.substr(correctIndex, incorrectIndex).c_str());
+        // get the substring till the end of incorrect chars and convert to char*
+        wattroff(window, COLOR_PAIR(2));
+        init_pair(3, COLOR_WHITE, COLOR_BLACK);
+        wattron(window, COLOR_PAIR(3)); 
+        mvwprintw(window, i, (columns - (int)cur.size()) / 2 + incorrectIndex, 
+            cur.substr(incorrectIndex, (int)cur.size()).c_str());
+        wattroff(window, COLOR_PAIR(3));
+        i++;
+        correctIndex -= columns - 2;
+        correctIndex = correctIndex > 0 ? correctIndex : 0;
+        incorrectIndex -= columns - 2;
+        incorrectIndex = incorrectIndex > 0 ? incorrectIndex : 0;
+        // get the substring till the end of the string and convert to char*
+    }
     wrefresh(window);
 }
 

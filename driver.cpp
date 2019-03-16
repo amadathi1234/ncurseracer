@@ -94,7 +94,8 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
         correctIndex -= columns - COLUMN_PADDING; 
         correctIndex = correctIndex < 0 ? 0 : correctIndex;
         chars.erase(0, columns - COLUMN_PADDING); // trim already typed info
-    }    
+    }
+    
     while(displayRow < MAX_TEXT_ROW) {
         std::string cur = "";
         if(chars.size() > columns - COLUMN_PADDING) {
@@ -163,7 +164,8 @@ double gameHandler(WINDOW* window, std::string &chars) {
         if(msSinceStart > 0) {
             wpmCount =  (float)currentIndex / (5 * (float)msSinceStart / 60000);
             std::string WPM = "Words Per Minute: " + std::to_string(wpmCount);
-            wprintcenter(window, WPM.c_str(), 20);
+            std::string clearstr = "";
+            wprintcenter(window, WPM.substr(0, 25), 20);
         }
         std::this_thread::sleep_for (std::chrono::milliseconds(CLOCK_SPEED));
     }

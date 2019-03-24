@@ -16,7 +16,8 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
 double gameHandler(WINDOW* window, std::string &chars);
 void clearline(WINDOW* window, int row, const int COLUMN_PADDING);
 void wcolorprint(WINDOW* window, std::string chars, int row, int column, int pairNo);
- 
+int difficultyHandler(WINDOW* window);
+
 int winrows = 0;
 int wincolumns = 0;
 
@@ -35,7 +36,11 @@ int main() {
     int x = 0;
     while(x != 10)
         x = wgetch(window);
-    delete_win(window);
+    delete_win(window); 
+    start_color();
+    use_default_colors();
+    WINDOW* difficultyWindow = createWindow(30, 70);
+    difficultyHandler(difficultyWindow);
     WINDOW* gameWindow = createWindow(30, 100);
     std::string lel = "";
     for(int i = 0; i < 500; i++) {
@@ -99,7 +104,6 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
     const int MAX_TEXT_ROW = 7;
     const int TEXT_TOP_PADDING = 1; 
     const int ROWS_BEFORE_SCROLL = 1;
-    start_color();
     getmaxyx(window, rows, columns); // get rows and columns of printing window
     // text scroller
     for(int j = incorrectIndex - (ROWS_BEFORE_SCROLL - 1) * (columns - COLUMN_PADDING * 2); 
@@ -149,13 +153,71 @@ void wcolorprint(WINDOW* window, std::string chars, int row, int column, int pai
     wattroff(window, COLOR_PAIR(pairNo));
 }
 
+int difficultyHandler(WINDOW* window) {
+    keypad(window, TRUE);
+    init_color(COLOR_YELLOW, 1000, 543, 0);
+    wprintcenter(window, "Choose your difficulty:", 8);
+    wprintcenter(window, "(use the arrow keys to move the cursor around)", 9);
+    wprintcenter(window, "EASY         MEDIUM          HARD", 18);
+    int x = 0;
+    int currentMode = 1;
+    while(x != 10) {
+        switch(currentMode) {
+            case 0: {
+                std::string easy = "EASY";
+                const char* easydesc = "No capital letters or punctuation. Easy-peasy!";
+                init_pair(10, COLOR_WHITE, COLOR_GREEN);
+                wcolorprint(window, easy, 18, 18, 10);
+                wprintcenter(window, easydesc, 12);
+                break;
+            }
+            case 1: {
+                std::string medium = "MEDIUM";
+                const char* meddesc = "Capitals are now in the mix though you are still";
+                const char* meddesc2 = "spared punctuation. Shouldn't be too hard!";
+                init_pair(11, COLOR_WHITE, COLOR_YELLOW);
+                wcolorprint(window, medium, 18, 31, 11);
+                wprintcenter(window, meddesc, 12);
+                wprintcenter(window, meddesc2, 13);
+                break;
+            }
+            case 2: {
+                std::string hard = "HARD";
+                const char* harddesc = "Capitals and punctuation are all";
+                const char* harddesc2 = "fair game at this difficulty. Tread carefully!";
+                init_pair(12, COLOR_WHITE, COLOR_RED);
+                wcolorprint(window, hard, 18, 47, 12);
+                wprintcenter(window, harddesc, 12);
+                wprintcenter(window, harddesc2, 13);
+                break;
+            }
+            default:
+                break;
+        }
+        x = wgetch(window);
+        wprintcenter(window, "EASY         MEDIUM          HARD", 18);
+        clearline(window, 12, 2);
+        clearline(window, 13, 2);
+        switch(x) {
+            case KEY_LEFT:
+                currentMode = currentMode == 0 ? 0 : currentMode - 1;
+                break;
+            case KEY_RIGHT:
+                currentMode = currentMode == 2 ? 2 : currentMode + 1;
+                break;
+            default:
+                break;
+        }
+    }
+    return currentMode;
+}
+
 double gameHandler(WINDOW* window, std::string &chars) { 
     // INITIALIZE YOUR VARIABLES PLEASE
     double wpmCount = 0.0;
     const int CLOCK_SPEED = 5; // in milliseconds
     int currentIndex = 0, incorrectBegin = 0, msSinceStart = 0, begin = 0;
     nodelay(window, true);
-    use_default_colors();
 
     while(currentIndex < (int)chars.size()) {
         wcolorprintcenter(window, chars, currentIndex, incorrectBegin);

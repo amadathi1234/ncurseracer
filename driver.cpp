@@ -57,7 +57,6 @@ int mainGame() {
     std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt"};
     WordParser parser(patharray[diff]);
     std::string a = parser.getString(60);
-    a = "a";
     double wpm = gameHandler(gameWindow, a);
     delete_win(gameWindow);
     WINDOW* postGameWindow = createWindow(20, 70);
@@ -246,6 +245,7 @@ int difficultyHandler(WINDOW* window) {
 }
 
 double gameHandler(WINDOW* window, std::string &chars) { 
+    keypad(window, FALSE);
     // INITIALIZE YOUR VARIABLES PLEASE
     double wpmCount = 0.0;
     int currentIndex = 0, incorrectBegin = 0, msSinceStart = 0, begin = 0;
@@ -270,7 +270,7 @@ double gameHandler(WINDOW* window, std::string &chars) {
         } else if(chars.size()) chars += " ";
         chars += next;
     }
-    
+    wprintcenter(window, "Press 'ESC' to quit into the post-game menu", 25);    
     time_t startMS = 0;
     float secondsSinceStart = 0;    
     while(currentIndex < (int)chars.size()) {
@@ -292,8 +292,12 @@ double gameHandler(WINDOW* window, std::string &chars) {
             startMS = time(NULL);            
             continue;
         }
-        else {
+        else if(nextchar != 27) {
             begin = 1;
+        } else {
+            nextchar = wgetch(window);
+            if(nextchar == ERR) // this prevents the arrow keys from triggering an exit
+                return 0;
         }
         if(incorrectBegin <= currentIndex && 
             nextchar == (int)chars[currentIndex]) incorrectBegin = ++currentIndex;
@@ -341,5 +345,6 @@ int postGameHandler(WINDOW* window, float wpm) {
                 break;        
         }
     }
+    delete_win(window);
     return curOpt;
 }

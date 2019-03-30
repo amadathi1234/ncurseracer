@@ -20,7 +20,8 @@ double gameHandler(WINDOW* window, std::string &chars);
 void clearline(WINDOW* window, int row, const int COLUMN_PADDING);
 void wcolorprint(WINDOW* window, std::string chars, int row, int column, int pairNo);
 int difficultyHandler(WINDOW* window);
-void postGameHandler(WINDOW* window, float wpm);
+int postGameHandler(WINDOW* window, float wpm);
+int mainGame();
 
 int winrows = 0;
 int wincolumns = 0;
@@ -41,6 +42,13 @@ int main() {
     while(x != 10)
         x = wgetch(window);
     delete_win(window); 
+    while(!mainGame()) {};
+    endwin();
+    std::cout << "Your Words per Minute: " << 0 << std::endl;
+    return 0;
+}
+
+int mainGame() {
     start_color();
     use_default_colors();
     WINDOW* difficultyWindow = createWindow(30, 70);
@@ -53,11 +61,7 @@ int main() {
     double wpm = gameHandler(gameWindow, a);
     delete_win(gameWindow);
     WINDOW* postGameWindow = createWindow(20, 70);
-    postGameHandler(postGameWindow, wpm);
-    endwin();
-    std::cout << "Your Words per Minute: " << wpm << std::endl;
-    return 0;
-
+    return postGameHandler(postGameWindow, wpm);
 }
 
 void delete_win(WINDOW* window) {
@@ -304,28 +308,38 @@ double gameHandler(WINDOW* window, std::string &chars) {
     return wpmCount;
 }
 
-void postGameHandler(WINDOW* window, float wpm) {
+int postGameHandler(WINDOW* window, float wpm) {
     keypad(window, TRUE);
     std::string WPMindic = "Your words per minute: " + std::to_string(wpm);
     wprintcenter(window, WPMindic, 5);
     std::string title = "Would you like to go back to the difficulty menu?";
     wprintcenter(window, title, 10);
+    wprintcenter(window, "(use the left and right arrow keys)", 11);
     wprintcenter(window, "Yes, take me back!                   No, I want to stop playing!", 17);
+    init_pair(12, COLOR_WHITE, COLOR_GREEN);
+    wcolorprint(window,"Yes, take me back!", 17, 3,12);
     int x = 0;
     int curOpt = 0;
+    const int COLUMN_PADDING = 2;
     while(x != 10) {
         x = wgetch(window);
         switch(x) {
             case KEY_LEFT:
                 curOpt = 0;
-                init_pair(12, COLOR_WHITE, COLOR_GREEN);
+                clearline(window, 17, COLUMN_PADDING);
+                wprintcenter(window, "Yes, take me back!                   No, I want to stop playing!", 17);
                 wcolorprint(window,"Yes, take me back!", 17, 3,12);
                 break;
             case KEY_RIGHT:
                 curOpt = 1;
+                init_pair(13, COLOR_WHITE, COLOR_RED);
+                clearline(window, 17, COLUMN_PADDING);
+                wprintcenter(window, "Yes, take me back!                   No, I want to stop playing!", 17);
+                wcolorprint(window, "No, I want to stop playing!", 17, 40, 13);
                 break;
             default:
                 break;        
         }
     }
+    return curOpt;
 }

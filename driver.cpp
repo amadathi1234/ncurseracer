@@ -7,6 +7,8 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include <sstream>
+#include <ctime>
 #include "ncurseracer.hpp"
 
 void wprintcenter(WINDOW* window, std::string chars, int passedRow);
@@ -41,10 +43,11 @@ int main() {
     start_color();
     use_default_colors();
     WINDOW* difficultyWindow = createWindow(30, 70);
-    difficultyHandler(difficultyWindow);
+    int diff = difficultyHandler(difficultyWindow);
     WINDOW* gameWindow = createWindow(30, 100);
-    WordParser parser("wordsEasy.txt");
-    std::string a = parser.getString(200);
+    std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt"};
+    WordParser parser(patharray[diff]);
+    std::string a = parser.getString(60);
     double wpm = gameHandler(gameWindow, a);
     endwin();
     std::cout << "Your Words per Minute: " << wpm << std::endl;
@@ -95,7 +98,6 @@ void clearline(WINDOW* window, int row, const int COLUMN_PADDING) {
         clearline.c_str());
 }
 
-// TODO: add non-wrapping functionality
 void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int incorrectIndex) {
     int rows = 0, columns = 0;
     int displayRow = 0;
@@ -105,42 +107,65 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
     const int ROWS_BEFORE_SCROLL = 1;
     getmaxyx(window, rows, columns); // get rows and columns of printing window
     // text scroller
-    for(int j = incorrectIndex - (ROWS_BEFORE_SCROLL - 1) * (columns - COLUMN_PADDING * 2); 
-        (j / (columns - COLUMN_PADDING * 2)) > 0; j -= columns - COLUMN_PADDING * 2) {
-        incorrectIndex -= columns - COLUMN_PADDING * 2;
-        incorrectIndex = incorrectIndex < 0 ? 0 : incorrectIndex;
-        correctIndex -= columns - COLUMN_PADDING * 2; 
-        correctIndex = correctIndex < 0 ? 0 : correctIndex;
-        chars.erase(0, columns - COLUMN_PADDING * 2); // trim already typed info
-    }
-    
+        
+    std::string cur = "";
+    std::stringstream streamer;
+    streamer << chars;
+    std::string nextWord = "";
+    int charsExtracted = 0;
+    int charSpace = columns - COLUMN_PADDING * 2;
+    int curCol = 0;
+    int spacing = 0;
+    int incor = incorrectIndex;
     while(displayRow < MAX_TEXT_ROW) {
-        std::string cur = "";
-        if(chars.size() > columns - COLUMN_PADDING) {
-            cur = chars.substr(0, columns - COLUMN_PADDING * 2); 
-            chars.erase(0, columns - COLUMN_PADDING * 2);
-        } else if(displayRow < MAX_TEXT_ROW) { 
-            cur = chars;
-            chars.clear(); // charstream complete
+        cur = "";
+        while(cur.size() + nextWord.size() + 1 < charSpace) {
+            cur += (cur.size() ? " " : "") + nextWord;  
+            if(!streamer.eof()) {
+                streamer >> nextWord;
+            }
+            else {
+                nextWord = ""; 
+                break;
+            } 
         }
+        curCol += charSpace;
+        spacing += charSpace - cur.size();
+        
+        if(nextWord != "" && curCol < incor + spacing + 1) {
+            incorrectIndex -= cur.size();
+            incorrectIndex = std::max(0, incorrectIndex);
+            correctIndex -= cur.size();
+            correctIndex = std::max(0, correctIndex);   
+            continue;
+        }         
+        
         clearline(window, displayRow + TEXT_TOP_PADDING, COLUMN_PADDING);
+        
+        // make space black
+        init_pair(10, COLOR_BLACK, COLOR_BLACK);
+        std::string whitespace = "";
+        for(int i = 0; i < columns - COLUMN_PADDING * 2; i++) {
+            whitespace += " ";
+        }
+
+        wcolorprint(window, whitespace, TEXT_TOP_PADDING + displayRow, COLUMN_PADDING, 10);
         // green section
         init_pair(1, COLOR_WHITE, COLOR_GREEN);
-        wcolorprint(window, cur.substr(0, correctIndex), TEXT_TOP_PADDING + displayRow, COLUMN_PADDING, 1);
+        int greenSpace = correctIndex > cur.size() ? cur.size() : correctIndex;
+        wcolorprint(window, cur.substr(0, greenSpace), TEXT_TOP_PADDING + displayRow, COLUMN_PADDING, 1);
         init_pair(2, COLOR_WHITE, COLOR_RED);
         wcolorprint(window, cur.substr(correctIndex > (int)cur.size() ? (int)cur.size() : correctIndex, incorrectIndex), 
             TEXT_TOP_PADDING + displayRow, COLUMN_PADDING + correctIndex, 2);
+
         init_pair(3, COLOR_BLACK, COLOR_WHITE);
         std::string endsection = cur.substr(incorrectIndex > (int)cur.size() ? (int)cur.size() : incorrectIndex, (int)cur.size());
-        while(cur.size() > 0 && (int)endsection.size() < columns - COLUMN_PADDING * 2 - incorrectIndex) {
-            endsection += " ";
-        }
         wcolorprint(window, endsection,
             TEXT_TOP_PADDING + displayRow, COLUMN_PADDING + incorrectIndex, 3);
         displayRow++;
-        correctIndex -= columns - COLUMN_PADDING;
+        correctIndex -= cur.size(); //columns - COLUMN_PADDING;
         correctIndex = correctIndex > 0 ? correctIndex : 0;
-        incorrectIndex -= columns - COLUMN_PADDING;
+        incorrectIndex -= cur.size();
         incorrectIndex = incorrectIndex > 0 ? incorrectIndex : 0;
         // get the substring till the end of the string and convert to char*
     }
@@ -214,15 +239,39 @@ int difficultyHandler(WINDOW* window) {
 double gameHandler(WINDOW* window, std::string &chars) { 
     // INITIALIZE YOUR VARIABLES PLEASE
     double wpmCount = 0.0;
-    const int CLOCK_SPEED = 5; // in milliseconds
     int currentIndex = 0, incorrectBegin = 0, msSinceStart = 0, begin = 0;
     nodelay(window, true);
-
+    // prepare string
+    int ROWS;
+    int COLUMNS;
+    getmaxyx(window, ROWS, COLUMNS);
+    COLUMNS -= 4;
+    int colNo = 1;
+    std::stringstream streamer;
+    std::string repChars = chars;
+    streamer << chars;
+    chars = "";
+    std::string next = "";
+    int extraSpace = 1;
+    while(!streamer.eof()) {
+        streamer >> next;
+        if(chars.size() + next.size() + extraSpace > colNo * COLUMNS) {
+            extraSpace = COLUMNS * colNo - chars.size(); // add extra space to bring offset back to 0
+            colNo++;
+        } else if(chars.size()) chars += " ";
+        chars += next;
+    }
+    
+    time_t startMS = 0;
+    float secondsSinceStart = 0;    
     while(currentIndex < (int)chars.size()) {
-        wcolorprintcenter(window, chars, currentIndex, incorrectBegin);
-        if(begin) msSinceStart += CLOCK_SPEED;
-        if(msSinceStart > 0 && begin) {
-            wpmCount =  (float)currentIndex / (5 * (float)msSinceStart / 60000);
+   
+        wcolorprintcenter(window, repChars, currentIndex, incorrectBegin);
+        
+        if(begin) secondsSinceStart = difftime(time(NULL), startMS);
+        if(begin) {
+            float minutes = secondsSinceStart / 60;
+            if(minutes > 0) wpmCount = (float)currentIndex / (5 * minutes);
             std::string WPM = "Words Per Minute: " + std::to_string(wpmCount);
             wprintcenter(window, WPM.substr(0, 25), 20);
         }
@@ -230,8 +279,13 @@ double gameHandler(WINDOW* window, std::string &chars) {
         bkgd(COLOR_PAIR(6));
         redrawwin(stdscr);
         int nextchar = wgetch(window);
-        if(begin == 0 && nextchar == ERR) continue;
-        else begin = 1;
+        if(begin == 0 && nextchar == ERR) { 
+            startMS = time(NULL);            
+            continue;
+        }
+        else {
+            begin = 1;
+        }
         if(incorrectBegin <= currentIndex && 
             nextchar == (int)chars[currentIndex]) incorrectBegin = ++currentIndex;
         else if(nextchar == 127 && (currentIndex > 0 || incorrectBegin > 0)) { // ASCII 127= backspace
@@ -241,7 +295,6 @@ double gameHandler(WINDOW* window, std::string &chars) {
             if(incorrectBegin < currentIndex) incorrectBegin = currentIndex + 1;
             else incorrectBegin++;
         }
-        std::this_thread::sleep_for (std::chrono::milliseconds(CLOCK_SPEED));
     }
     return wpmCount;
 }

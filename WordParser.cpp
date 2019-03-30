@@ -14,15 +14,13 @@ WordParser::WordParser(std::string filePath) {
     }
 }
 
-// TODO: fix spacing
-std::string WordParser::getString(int size) {
+std::string WordParser::getString(int wordCount) {
     std::string str = "";
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(0, (int)words.size() - 1);
-    while((int)str.size() < size) {
+    for(int i = 0; i < wordCount; i++) {
         std::string word = words[ distribution(generator) ];
-        if((int)str.size() + (int)word.size() < size) str += word + " ";
-        else break;
+        str += (str.size() ? " " : "") + word;
     }
     return str;
 }

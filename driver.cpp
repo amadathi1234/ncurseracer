@@ -44,7 +44,7 @@ int main() {
     delete_win(window); 
     while(!mainGame()) {};
     endwin();
-    std::cout << "Your Words per Minute: " << 0 << std::endl;
+    std::cout << "Thank you so much for playing Ncurseracer!" << std::endl;
     return 0;
 }
 
@@ -310,7 +310,7 @@ double gameHandler(WINDOW* window, std::string &chars) {
 
 int postGameHandler(WINDOW* window, float wpm) {
     keypad(window, TRUE);
-    std::string WPMindic = "Your words per minute: " + std::to_string(wpm);
+    std::string WPMindic = "Your words per minute: " + std::to_string((int)wpm);
     wprintcenter(window, WPMindic, 5);
     std::string title = "Would you like to go back to the difficulty menu?";
     wprintcenter(window, title, 10);

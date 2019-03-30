@@ -119,7 +119,7 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
     int incor = incorrectIndex;
     while(displayRow < MAX_TEXT_ROW) {
         cur = "";
-        while(cur.size() + nextWord.size() + 1 < charSpace) {
+        while(cur.size() + nextWord.size() < charSpace) {
             cur += (cur.size() ? " " : "") + nextWord;  
             if(!streamer.eof()) {
                 streamer >> nextWord;

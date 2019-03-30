@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include "ncurseracer.hpp"
 
 void wprintcenter(WINDOW* window, std::string chars, int passedRow);
 void wprintcenter(WINDOW* window, std::string chars);
@@ -31,7 +32,7 @@ int main() {
     noecho();
     WINDOW* window = createWindow(20, 50);
     wprintcenter(window, "NCURSERACER");
-    wprintcenter(window, "A game by Siddarth Pillai and Anand Madathil", 12);
+    wprintcenter(window, "A game by Anand Madathil", 12);
     wprintcenter(window, "PRESS  RETURN", 15);
     int x = 0;
     while(x != 10)
@@ -42,12 +43,9 @@ int main() {
     WINDOW* difficultyWindow = createWindow(30, 70);
     difficultyHandler(difficultyWindow);
     WINDOW* gameWindow = createWindow(30, 100);
-    std::string lel = "";
-    for(int i = 0; i < 500; i++) {
-        lel += (i < 251 ? "a" : "b");
-    }
-    lel += "end";
-    double wpm = gameHandler(gameWindow, lel);
+    WordParser parser("wordsEasy.txt");
+    std::string a = parser.getString(200);
+    double wpm = gameHandler(gameWindow, a);
     endwin();
     std::cout << "Your Words per Minute: " << wpm << std::endl;
     return 0;
@@ -97,6 +95,7 @@ void clearline(WINDOW* window, int row, const int COLUMN_PADDING) {
         clearline.c_str());
 }
 
+// TODO: add non-wrapping functionality
 void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int incorrectIndex) {
     int rows = 0, columns = 0;
     int displayRow = 0;

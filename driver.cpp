@@ -266,7 +266,7 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
     int extraSpace = 1;
     while(!streamer.eof()) {
         streamer >> next;
-        if(chars.size() + next.size() + extraSpace > colNo * COLUMNS) {
+        if(chars.size() + next.size() + extraSpace >= colNo * COLUMNS) {
             extraSpace = COLUMNS * colNo - chars.size(); // add extra space to bring offset back to 0
             colNo++;
         } else if(chars.size()) chars += " ";

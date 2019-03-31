@@ -55,9 +55,9 @@ int mainGame() {
     WINDOW* difficultyWindow = createWindow(30, 70);
     int diff = difficultyHandler(difficultyWindow);
     WINDOW* gameWindow = createWindow(30, 100);
-    std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt"};
+    std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt", "wordsHard.txt"};
     WordParser parser(patharray[diff]);
-    std::string a = parser.getString(60);
+    std::string a = parser.getString(diff == 3 ? 500 : 60);
     std::pair<double, float> myPair = gameHandler(gameWindow, a);
     delete_win(gameWindow);
     WINDOW* postGameWindow = createWindow(20, 70);
@@ -192,6 +192,7 @@ int difficultyHandler(WINDOW* window) {
     wprintcenter(window, "Choose your difficulty:", 8);
     wprintcenter(window, "(use the arrow keys to move the cursor and enter to confirm)", 9);
     wprintcenter(window, "EASY         MEDIUM          HARD", 18);
+    wprintcenter(window, "             ~ZEN~               ", 19);
     int x = 0;
     int currentMode = 1;
     while(x != 10) {
@@ -224,11 +225,19 @@ int difficultyHandler(WINDOW* window) {
                 wprintcenter(window, harddesc2, 13);
                 break;
             }
+            case 3: {
+                std::string zen = "~ZEN~";
+                const char* zendesc = "UNLEASH. INFINITE. ZEN.";
+                init_pair(20, COLOR_BLUE, COLOR_WHITE);
+                wcolorprint(window, zen, 19, 31, 20); 
+                wprintcenter(window, zendesc, 12);
+            }
             default:
                 break;
         }
         x = wgetch(window);
         wprintcenter(window, "EASY         MEDIUM          HARD", 18);
+        wprintcenter(window, "             ~ZEN~               ", 19);
         clearline(window, 12, 2);
         clearline(window, 13, 2);
         switch(x) {
@@ -236,7 +245,7 @@ int difficultyHandler(WINDOW* window) {
                 currentMode = currentMode == 0 ? 0 : currentMode - 1;
                 break;
             case KEY_RIGHT:
-                currentMode = currentMode == 2 ? 2 : currentMode + 1;
+                currentMode = currentMode == 3 ? 3 : currentMode + 1;
                 break;
             default:
                 break;

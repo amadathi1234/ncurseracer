@@ -190,7 +190,7 @@ int difficultyHandler(WINDOW* window) {
     keypad(window, TRUE);
     init_color(COLOR_YELLOW, 1000, 543, 0);
     wprintcenter(window, "Choose your difficulty:", 8);
-    wprintcenter(window, "(use the arrow keys to move the cursor and enter to confirm)", 9);
+    wprintcenter(window, "(use the left and right arrows to move the cursor, enter to confirm)", 9);
     wprintcenter(window, "EASY         MEDIUM          HARD", 18);
     wprintcenter(window, "             ~ZEN~               ", 19);
     int x = 0;

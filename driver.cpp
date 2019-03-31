@@ -58,7 +58,7 @@ int mainGame() {
     std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt"};
     WordParser parser(patharray[diff]);
     std::string a = parser.getString(60);
-    std::pair<double, int> myPair = gameHandler(gameWindow, a);
+    std::pair<double, float> myPair = gameHandler(gameWindow, a);
     delete_win(gameWindow);
     WINDOW* postGameWindow = createWindow(20, 70);
     return postGameHandler(postGameWindow, myPair.first, myPair.second);

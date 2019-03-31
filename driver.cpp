@@ -190,7 +190,7 @@ int difficultyHandler(WINDOW* window) {
     keypad(window, TRUE);
     init_color(COLOR_YELLOW, 1000, 543, 0);
     wprintcenter(window, "Choose your difficulty:", 8);
-    wprintcenter(window, "(use the arrow keys to move the cursor around)", 9);
+    wprintcenter(window, "(use the arrow keys to move the cursor and enter to confirm)", 9);
     wprintcenter(window, "EASY         MEDIUM          HARD", 18);
     int x = 0;
     int currentMode = 1;
@@ -336,7 +336,7 @@ int postGameHandler(WINDOW* window, float wpm, float accuracy) {
     wprintcenter(window, "Your keystroke accuracy: " + std::to_string(accuracy).substr(0,5) + "%%", 6);
     std::string title = "Would you like to go back to the difficulty menu?";
     wprintcenter(window, title, 10);
-    wprintcenter(window, "(use the left and right arrow keys)", 11);
+    wprintcenter(window, "(use the left and right arrow keys to move and enter to confirm)", 11);
     wprintcenter(window, "Yes, take me back!                   No, I want to stop playing!", 17);
     init_pair(12, COLOR_WHITE, COLOR_GREEN);
     wcolorprint(window,"Yes, take me back!", 17, 3,12);

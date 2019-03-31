@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <utility>
 #include "ncurseracer.hpp"
 
 void wprintcenter(WINDOW* window, std::string chars, int passedRow);
@@ -16,11 +17,11 @@ void wprintcenter(WINDOW* window, std::string chars);
 WINDOW* createWindow(int wrows, int wcolumns);
 void delete_win(WINDOW* window);
 void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int incorrectIndex);
-double gameHandler(WINDOW* window, std::string &chars);
+std::pair<double, float> gameHandler(WINDOW* window, std::string &chars);
 void clearline(WINDOW* window, int row, const int COLUMN_PADDING);
 void wcolorprint(WINDOW* window, std::string chars, int row, int column, int pairNo);
 int difficultyHandler(WINDOW* window);
-int postGameHandler(WINDOW* window, float wpm);
+int postGameHandler(WINDOW* window, float wpm, float accuracy);
 int mainGame();
 
 int winrows = 0;
@@ -57,10 +58,10 @@ int mainGame() {
     std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt"};
     WordParser parser(patharray[diff]);
     std::string a = parser.getString(60);
-    double wpm = gameHandler(gameWindow, a);
+    std::pair<double, int> myPair = gameHandler(gameWindow, a);
     delete_win(gameWindow);
     WINDOW* postGameWindow = createWindow(20, 70);
-    return postGameHandler(postGameWindow, wpm);
+    return postGameHandler(postGameWindow, myPair.first, myPair.second);
 }
 
 void delete_win(WINDOW* window) {
@@ -244,7 +245,7 @@ int difficultyHandler(WINDOW* window) {
     return currentMode;
 }
 
-double gameHandler(WINDOW* window, std::string &chars) { 
+std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) { 
     keypad(window, FALSE);
     // INITIALIZE YOUR VARIABLES PLEASE
     double wpmCount = 0.0;
@@ -272,11 +273,14 @@ double gameHandler(WINDOW* window, std::string &chars) {
     }
     wprintcenter(window, "Press 'ESC' to quit into the post-game menu", 25);    
     time_t startMS = 0;
-    float secondsSinceStart = 0;    
+    float secondsSinceStart = 0;     
+    int keystrokes = 0;
+    int inaccurateKeys = 0;
     while(currentIndex < (int)chars.size()) {
    
         wcolorprintcenter(window, repChars, currentIndex, incorrectBegin);
-        
+        if(keystrokes)
+        wprintcenter(window, "Accuracy: " + std::to_string((float)(keystrokes - inaccurateKeys) * 100/keystrokes).substr(0, 5) + "%%", 21);
         if(begin) secondsSinceStart = difftime(time(NULL), startMS);
         if(begin) {
             float minutes = secondsSinceStart / 60;
@@ -297,8 +301,16 @@ double gameHandler(WINDOW* window, std::string &chars) {
         } else {
             nextchar = wgetch(window);
             if(nextchar == ERR) // this prevents the arrow keys from triggering an exit
-                return 0;
+                return {0.0, 0.0};
         }
+        
+        if(nextchar != ERR && nextchar != 127) {
+            keystrokes++;    
+        }
+        if(nextchar != ERR && nextchar != 127 && (incorrectBegin > currentIndex || nextchar != (int)chars[currentIndex])) {
+            inaccurateKeys++;
+        }
+        
         if(incorrectBegin <= currentIndex && 
             nextchar == (int)chars[currentIndex]) incorrectBegin = ++currentIndex;
         else if(nextchar == 127 && (currentIndex > 0 || incorrectBegin > 0)) { // ASCII 127= backspace
@@ -309,13 +321,15 @@ double gameHandler(WINDOW* window, std::string &chars) {
             else incorrectBegin++;
         }
     }
-    return wpmCount;
+    std::pair<double, float> val = {wpmCount, ((float)keystrokes - inaccurateKeys) * 100 / keystrokes}; 
+    return val;
 }
 
-int postGameHandler(WINDOW* window, float wpm) {
+int postGameHandler(WINDOW* window, float wpm, float accuracy) {
     keypad(window, TRUE);
     std::string WPMindic = "Your words per minute: " + std::to_string((int)wpm);
     wprintcenter(window, WPMindic, 5);
+    wprintcenter(window, "Your keystroke accuracy: " + std::to_string(accuracy) + "%%", 6);
     std::string title = "Would you like to go back to the difficulty menu?";
     wprintcenter(window, title, 10);
     wprintcenter(window, "(use the left and right arrow keys)", 11);

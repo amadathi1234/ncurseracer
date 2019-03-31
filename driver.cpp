@@ -249,6 +249,7 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
     keypad(window, FALSE);
     // INITIALIZE YOUR VARIABLES PLEASE
     double wpmCount = 0.0;
+    float accuracy = 0.0;
     int currentIndex = 0, incorrectBegin = 0, msSinceStart = 0, begin = 0;
     nodelay(window, true);
     // prepare string
@@ -279,14 +280,17 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
     while(currentIndex < (int)chars.size()) {
    
         wcolorprintcenter(window, repChars, currentIndex, incorrectBegin);
-        if(keystrokes)
-        wprintcenter(window, "Accuracy: " + std::to_string((float)(keystrokes - inaccurateKeys) * 100/keystrokes).substr(0, 5) + "%%", 21);
+        if(keystrokes) {
+            accuracy = (float)(keystrokes - inaccurateKeys) * 100/keystrokes;
+            wprintcenter(window, "Accuracy: " + 
+                    std::to_string(accuracy).substr(0, 5) + "%%", 21);
+        }
         if(begin) secondsSinceStart = difftime(time(NULL), startMS);
         if(begin) {
             float minutes = secondsSinceStart / 60;
             if(minutes > 0) wpmCount = (float)currentIndex / (5 * minutes);
-            std::string WPM = "Words Per Minute: " + std::to_string(wpmCount);
-            wprintcenter(window, WPM.substr(0, 25), 20);
+            std::string WPM = "Words Per Minute: " + std::to_string(wpmCount).substr(0, 5);
+            wprintcenter(window, WPM, 20);
         }
         init_pair(6, -1, -1);
         bkgd(COLOR_PAIR(6));
@@ -301,7 +305,7 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
         } else {
             nextchar = wgetch(window);
             if(nextchar == ERR) // this prevents the arrow keys from triggering an exit
-                return {0.0, 0.0};
+                return {wpmCount, accuracy};
         }
         
         if(nextchar != ERR && nextchar != 127) {
@@ -321,15 +325,15 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
             else incorrectBegin++;
         }
     }
-    std::pair<double, float> val = {wpmCount, ((float)keystrokes - inaccurateKeys) * 100 / keystrokes}; 
+    std::pair<double, float> val = {wpmCount, accuracy}; 
     return val;
 }
 
 int postGameHandler(WINDOW* window, float wpm, float accuracy) {
     keypad(window, TRUE);
-    std::string WPMindic = "Your words per minute: " + std::to_string((int)wpm);
+    std::string WPMindic = "Your words per minute: " + std::to_string(wpm).substr(0,5);
     wprintcenter(window, WPMindic, 5);
-    wprintcenter(window, "Your keystroke accuracy: " + std::to_string(accuracy) + "%%", 6);
+    wprintcenter(window, "Your keystroke accuracy: " + std::to_string(accuracy).substr(0,5) + "%%", 6);
     std::string title = "Would you like to go back to the difficulty menu?";
     wprintcenter(window, title, 10);
     wprintcenter(window, "(use the left and right arrow keys)", 11);

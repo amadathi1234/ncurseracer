@@ -2,7 +2,6 @@
 #include <string>
 #include <fstream>
 #include "ncurseracer.hpp"
-#include <iostream>
 #include <random>
 #include <ctime>
 

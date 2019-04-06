@@ -39,18 +39,24 @@ int main() {
     while(x != 10)
         x = wgetch(window);
     delete_win(window); 
-    while(!mainGame()) {};
+    while(!mainGame()) {}; // keep cycling until mainGame returns 0
     endwin();
     std::cout << "Thank you so much for playing Ncurseracer!" << std::endl;
     return 0;
 }
 
+/**
+ * This method is run to cycle the game until the player
+ * decides to quit.
+ *
+ */
 int mainGame() {
     start_color();
     use_default_colors();
     WINDOW* difficultyWindow = createWindow(30, 70);
     int diff = difficultyHandler(difficultyWindow);
-    WINDOW* gameWindow = createWindow(30, 100);
+    delete_win(difficultyWindow);
+    WINDOW* gameWindow = createWindow(20, 100);
     std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt", "wordsHard.txt"};
     WordParser parser(patharray[diff]);
     std::string a = parser.getString(diff == 3 ? 500 : 60);
@@ -60,6 +66,9 @@ int mainGame() {
     return postGameHandler(postGameWindow, myPair.first, myPair.second);
 }
 
+/**
+ * Run this method to clear the screen of the window before deleting it.
+ */
 void delete_win(WINDOW* window) {
     wclear(window);
     wrefresh(window);
@@ -92,6 +101,9 @@ void wprintcenter(WINDOW* window, std::string chars) {
     wrefresh(window);
 }
 
+/**
+ * Clear a specified line of the passed window (i.e. make it blank)
+ */
 void clearline(WINDOW* window, int row, const int COLUMN_PADDING) {
     int rows = 0, columns = 0;
     getmaxyx(window, rows, columns);
@@ -111,8 +123,8 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
     const int TEXT_TOP_PADDING = 1; 
     const int ROWS_BEFORE_SCROLL = 1;
     getmaxyx(window, rows, columns); // get rows and columns of printing window
+    
     // text scroller
-        
     std::string cur = "";
     std::stringstream streamer;
     streamer << chars;
@@ -176,12 +188,18 @@ void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int 
     }
 }
 
+/**
+ * Color print starting from the specified column in the specified row of the passed window.
+ */
 void wcolorprint(WINDOW* window, std::string chars, int row, int column, int pairNo) {
     wattron(window, COLOR_PAIR(pairNo));
     mvwprintw(window, row, column, chars.c_str());
     wattroff(window, COLOR_PAIR(pairNo));
 }
 
+/**
+ * Handles the difficulty window.
+ */
 int difficultyHandler(WINDOW* window) {
     keypad(window, TRUE);
     init_color(COLOR_YELLOW, 1000, 543, 0);
@@ -191,6 +209,8 @@ int difficultyHandler(WINDOW* window) {
     wprintcenter(window, "             ~ZEN~               ", 19);
     int x = 0;
     int currentMode = 1;
+
+    // display section
     while(x != 10) {
         switch(currentMode) {
             case 0: {
@@ -236,7 +256,7 @@ int difficultyHandler(WINDOW* window) {
         wprintcenter(window, "             ~ZEN~               ", 19);
         clearline(window, 12, 2);
         clearline(window, 13, 2);
-        switch(x) {
+        switch(x) { // move the cursor appropriately
             case KEY_LEFT:
                 currentMode = currentMode == 0 ? 0 : currentMode - 1;
                 break;
@@ -250,9 +270,13 @@ int difficultyHandler(WINDOW* window) {
     return currentMode;
 }
 
+/**
+ * Handles the keystroke detection and arithmetic as well as the front-end graphics
+ */
 std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) { 
-    keypad(window, FALSE);
-    // INITIALIZE YOUR VARIABLES PLEASE
+    
+    keypad(window, FALSE); // do not allow arrow keys to trigger escape
+    
     double wpmCount = 0.0;
     float accuracy = 0.0;
     int currentIndex = 0, incorrectBegin = 0, msSinceStart = 0, begin = 0;
@@ -277,25 +301,28 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
         } else if(chars.size()) chars += " ";
         chars += next;
     }
-    wprintcenter(window, "Press 'ESC' to quit into the post-game menu", 25);    
+    wprintcenter(window, "Press 'ESC' to quit into the post-game menu", 14);    
     time_t startMS = 0;
     float secondsSinceStart = 0;     
     int keystrokes = 0;
     int inaccurateKeys = 0;
+    // keep looping to create representation of game
     while(currentIndex < (int)chars.size()) {
    
-        wcolorprintcenter(window, repChars, currentIndex, incorrectBegin);
-        if(keystrokes) {
+        wcolorprintcenter(window, repChars, currentIndex, incorrectBegin); // print string on screen
+  
+        // back end section
+        if(keystrokes) { // avoid dividing by zero
             accuracy = (float)(keystrokes - inaccurateKeys) * 100/keystrokes;
             wprintcenter(window, "Accuracy: " + 
-                    std::to_string(accuracy).substr(0, 5) + "%%", 21);
+                    std::to_string(accuracy).substr(0, 5) + "%%", 12);
         }
         if(begin) secondsSinceStart = difftime(time(NULL), startMS);
         if(begin) {
             float minutes = secondsSinceStart / 60;
             if(minutes > 0) wpmCount = (float)currentIndex / (5 * minutes);
             std::string WPM = "Words Per Minute: " + std::to_string(wpmCount).substr(0, 5);
-            wprintcenter(window, WPM, 20);
+            wprintcenter(window, WPM, 11);
         }
         init_pair(6, -1, -1);
         bkgd(COLOR_PAIR(6));
@@ -334,6 +361,9 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
     return val;
 }
 
+/**
+ * Handles exiting the game and returning to the difficulty window
+ */
 int postGameHandler(WINDOW* window, float wpm, float accuracy) {
     keypad(window, TRUE);
     std::string WPMindic = "Your words per minute: " + std::to_string(wpm).substr(0,5);

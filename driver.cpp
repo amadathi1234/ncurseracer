@@ -1,11 +1,7 @@
 #include <sys/ioctl.h>
-#include <string.h>
 #include <ncurses.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <string>
-#include <thread>
-#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <ctime>

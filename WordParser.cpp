@@ -1,7 +1,6 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <sstream>
 #include "ncurseracer.hpp"
 #include <iostream>
 #include <random>

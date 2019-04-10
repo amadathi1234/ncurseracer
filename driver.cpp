@@ -301,7 +301,7 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
         } else if(chars.size()) chars += " ";
         chars += next;
     }
-    wprintcenter(window, "Press 'ESC' to quit into the post-game menu", 14);    
+    wprintcenter(window, "Press 'ESC' to quit into the post-game menu", 17);    
     time_t startMS = 0;
     float secondsSinceStart = 0;     
     int keystrokes = 0;
@@ -315,14 +315,14 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
         if(keystrokes) { // avoid dividing by zero
             accuracy = (float)(keystrokes - inaccurateKeys) * 100/keystrokes;
             wprintcenter(window, "Accuracy: " + 
-                    std::to_string(accuracy).substr(0, 5) + "%%", 12);
+                    std::to_string(accuracy).substr(0, 5) + "%%", 15);
         }
         if(begin) secondsSinceStart = difftime(time(NULL), startMS);
         if(begin) {
             float minutes = secondsSinceStart / 60;
             if(minutes > 0) wpmCount = (float)currentIndex / (5 * minutes);
             std::string WPM = "Words Per Minute: " + std::to_string(wpmCount).substr(0, 5);
-            wprintcenter(window, WPM, 11);
+            wprintcenter(window, WPM, 14);
         }
         init_pair(6, -1, -1);
         bkgd(COLOR_PAIR(6));

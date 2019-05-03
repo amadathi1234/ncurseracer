@@ -1,9 +1,9 @@
-#include <string>
-#include <vector>
-
 /**
  * The header file used to define elements outside the driver class
  */
+#include <string>
+#include <vector>
+
 
 class WordParser {
     public:

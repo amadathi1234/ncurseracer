@@ -24,10 +24,13 @@ int winrows = 0;
 int wincolumns = 0;
 
 int main() {
+    // grab window dimensions
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     winrows = w.ws_row;
     wincolumns = w.ws_col;
+
+    // begin ncurses functionality
     initscr();
     curs_set(0); 
     noecho();
@@ -51,14 +54,18 @@ int main() {
  *
  */
 int mainGame() {
+    // begin color functionality
     start_color();
     use_default_colors();
+
     WINDOW* difficultyWindow = createWindow(30, 70);
     int diff = difficultyHandler(difficultyWindow);
     delete_win(difficultyWindow);
     WINDOW* gameWindow = createWindow(20, 100);
     std::string patharray[] {"wordsEasy.txt", "wordsMedium.txt", "wordsHard.txt", "wordsHard.txt"};
     WordParser parser(patharray[diff]);
+    
+    // diff = 3 -> zen mode, so get a much longer string
     std::string a = parser.getString(diff == 3 ? 500 : 60);
     std::pair<double, float> myPair = gameHandler(gameWindow, a);
     delete_win(gameWindow);
@@ -67,7 +74,7 @@ int mainGame() {
 }
 
 /**
- * Run this method to clear the screen of the window before deleting it.
+ * Clears the screen of the window before deleting it.
  */
 void delete_win(WINDOW* window) {
     wclear(window);
@@ -75,6 +82,9 @@ void delete_win(WINDOW* window) {
     delwin(window);
 }
 
+/**
+ * Creates a centered window with the given rows and columns.
+ */
 WINDOW* createWindow(int wrows, int wcolumns) {
     WINDOW* window = newwin(wrows, wcolumns, (winrows - wrows) / 2, 
         (wincolumns - wcolumns) / 2); // create the window
@@ -83,6 +93,9 @@ WINDOW* createWindow(int wrows, int wcolumns) {
     return window; // return it
 }
 
+/**
+ * Prints the passed string center-justified in the passed row in the passed window.
+ */
 void wprintcenter(WINDOW* window, std::string chars, int passedRow) {
     int rows, columns;
     getmaxyx(window, rows, columns); // get rows and columns
@@ -94,6 +107,9 @@ void wprintcenter(WINDOW* window, std::string chars, int passedRow) {
     wrefresh(window);
 }
 
+/**
+ * Prints the passed string center-justified in the center of the passed window.
+ */
 void wprintcenter(WINDOW* window, std::string chars) {
     int rows, columns;
     getmaxyx(window, rows, columns); // get rows and columns
@@ -115,6 +131,10 @@ void clearline(WINDOW* window, int row, const int COLUMN_PADDING) {
         clearline.c_str());
 }
 
+/**
+ * Function used to produce the colors of correctly/incorrectly typed text in the game, as well
+ * as the wrapping functionality.
+ */
 void wcolorprintcenter(WINDOW* window, std::string chars, int correctIndex, int incorrectIndex) {
     int rows = 0, columns = 0;
     int displayRow = 0;
@@ -365,7 +385,9 @@ std::pair<double, float> gameHandler(WINDOW* window, std::string &chars) {
  * Handles exiting the game and returning to the difficulty window
  */
 int postGameHandler(WINDOW* window, float wpm, float accuracy) {
-    keypad(window, TRUE);
+    keypad(window, TRUE); // require arrow keys for cursor functionality
+    
+    // print statistics
     std::string WPMindic = "Your words per minute: " + std::to_string(wpm).substr(0,5);
     wprintcenter(window, WPMindic, 5);
     wprintcenter(window, "Your keystroke accuracy: " + std::to_string(accuracy).substr(0,5) + "%%", 6);
@@ -375,6 +397,8 @@ int postGameHandler(WINDOW* window, float wpm, float accuracy) {
     wprintcenter(window, "Yes, take me back!                   No, I want to stop playing!", 17);
     init_pair(12, COLOR_WHITE, COLOR_GREEN);
     wcolorprint(window,"Yes, take me back!", 17, 3,12);
+
+    // cursor functionality
     int x = 0;
     int curOpt = 0;
     const int COLUMN_PADDING = 2;
